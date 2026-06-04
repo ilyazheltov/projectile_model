@@ -14,15 +14,15 @@ def func(t, xyzdxdydz, ro0 = ro0, Cd = Cd, A = A, m = m, H = H, g = g):
 
     temp = -(ro0 * Cd * A) / (2 * m)
 
-    return [
-            dx_dt, 
-            temp * np.e**(-z/H) * np.sqrt((dx_dt - np.log(10*z+1))**2 + (dy_dt - 2)**2 + dz_dt**2) * (dx_dt - 5*np.log(10*z+1)),
-            dy_dt, 
-            temp * np.e**(-z/H) * np.sqrt((dx_dt - np.log(10*z+1))**2 + (dy_dt - 2)**2 + dz_dt**2) * (dy_dt - 2),
-            dz_dt, 
-            -g + temp * np.e**(-z/H) * np.sqrt((dx_dt - np.log(10*z+1))**2 + (dy_dt - 2)**2 + dz_dt**2) * dz_dt
-            ]
-
+    with np.errstate(invalid='ignore', divide='ignore'):
+        return [
+                dx_dt, 
+                temp * np.e**(-z/H) * np.sqrt((dx_dt - np.log(10*z+1))**2 + (dy_dt - 2)**2 + dz_dt**2) * (dx_dt - 5*np.log(10*z+1)),
+                dy_dt, 
+                temp * np.e**(-z/H) * np.sqrt((dx_dt - np.log(10*z+1))**2 + (dy_dt - 2)**2 + dz_dt**2) * (dy_dt - 2),
+                dz_dt, 
+                -g + temp * np.e**(-z/H) * np.sqrt((dx_dt - np.log(10*z+1))**2 + (dy_dt - 2)**2 + dz_dt**2) * dz_dt
+                ]
 
 def objective_function(vars, start_coordinates = start_coordinates, target_coordinates = target_coordinates):
 
@@ -54,12 +54,17 @@ def find_angles():
         method='trf',
     )
 
-    if result.success:
-        return result.x
-    
+    MAX_ACCEPTABLE_COST = 0.5 
+
+    if not result.success:
+        if result.status == 0:
+            print("Ошибка: Превышен лимит шагов.")
+        elif result.status == -1:
+            print("Критическая ошибка математики. Вычисления прерваны.")
+
     else:
-        raise NoSolution
+        if result.cost > MAX_ACCEPTABLE_COST:
+            print(f"Алгоритм застрял в локальном минимуме.")
+        else:
+            return result.x
     
-
-
-

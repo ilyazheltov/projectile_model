@@ -20,9 +20,6 @@ initial_guess = [60, np.pi/4, np.pi/4]
 lower_bounds = [0, 0, 0]
 upper_bounds = [2.2*v0/g, np.pi/2, np.pi*2]
 
-teta_mas_for_solver = np.linspace(0, np.pi/2, 180)
-phi_mas_for_solver = np.linspace(0, np.pi*2, 180*4)
-
 while True:
     try:
         xt = float(input("x coordinate of target: "))
