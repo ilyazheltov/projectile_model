@@ -2,7 +2,7 @@ import numpy as np
 from constants_and_variables import *
 from scipy.integrate import solve_ivp
 from scipy.optimize import least_squares
-from errors import *
+
 
 def func(t, xyzdxdydz, ro0 = ro0, Cd = Cd, A = A, m = m, H = H, g = g):
 
@@ -26,11 +26,10 @@ def func(t, xyzdxdydz, ro0 = ro0, Cd = Cd, A = A, m = m, H = H, g = g):
 
 def objective_function(vars, start_coordinates = start_coordinates, target_coordinates = target_coordinates):
 
+    t_end, teta, phi = vars
     x0, y0, z0 = start_coordinates
     xt, yt, zt = target_coordinates
 
-    t_end, teta, phi = vars
-    
     vx0 = v0 * np.cos(teta) * np.cos(phi)
     vy0 = v0 * np.cos(teta) * np.sin(phi)
     vz0 = v0 * np.sin(teta)
@@ -46,25 +45,30 @@ def objective_function(vars, start_coordinates = start_coordinates, target_coord
         ]
 
 def find_angles():
+    
+    MAX_ACCEPTABLE_COST = 0.05 
+    status_of_solution = False
 
-    result = least_squares(
-        objective_function,
-        initial_guess,
-        bounds=(lower_bounds, upper_bounds),
-        method='trf',
-    )
+    for initial_guess in initial_guess_mas:
 
-    MAX_ACCEPTABLE_COST = 0.5 
+        result = least_squares(
+            objective_function,
+            initial_guess,
+            bounds=(lower_bounds, upper_bounds),
+            method='trf',
+            jac='2-point',
+            xtol = 1e-2
+        )
 
-    if not result.success:
-        if result.status == 0:
-            print("Ошибка: Превышен лимит шагов.")
-        elif result.status == -1:
-            print("Критическая ошибка математики. Вычисления прерваны.")
-
-    else:
         if result.cost > MAX_ACCEPTABLE_COST:
-            print(f"Алгоритм застрял в локальном минимуме.")
+            print(initial_guess, 'с такими числами большая погрешность')
+            continue
         else:
+            status_of_solution = True
             return result.x
+        
+    if not status_of_solution:
+        print('Снаряд не сможет попасть в эту точку')
+        return None
+
     

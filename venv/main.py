@@ -1,7 +1,8 @@
 from scipy.integrate import solve_ivp
-# import matplotlib.pyplot as plt
 from constants_and_variables import *
 from functions import *
+import time
+
 
 print(find_angles())
 

@@ -12,13 +12,20 @@ x0 = 0
 y0 = 0
 z0 = 0
 
-N = 1000
-t_span = (0, 2.2*v0/g)
-t_eval = np.linspace(0, 2.2*v0/g, 2000)
+N = 4
+t_span = (0, 2*v0/g)
 
-initial_guess = [60, np.pi/4, np.pi/4]
 lower_bounds = [0, 0, 0]
-upper_bounds = [2.2*v0/g, np.pi/2, np.pi*2]
+upper_bounds = [2*v0/g, np.pi/2, np.pi*2]
+
+initial_guess_mas = []
+for t in range(0, N):
+    for teta in range(0, N):
+        for phi in range(0, N):
+            t1 = t*upper_bounds[0]/(N+1) - 1e-5 if t != 0 else 0.01
+            teta1 = teta*upper_bounds[1]/(N+1) - 1e-5 if teta != 0 else 0.01
+            phi1 = phi*upper_bounds[2]/(N+1) - 1e-5 if phi != 0 else 0.01
+            initial_guess_mas.append([t1, teta1, phi1])
 
 while True:
     try:
@@ -27,6 +34,19 @@ while True:
         zt = float(input("z coordinate of target: "))
         target_coordinates = [xt, yt, zt]
         start_coordinates = [x0, y0, z0]
-        break
+
+        if np.sqrt(xt**2 + yt**2) <= (v0**2)/g and zt <= (v0**2)/(2*g):
+            break
+
+        else:
+            print("Снаряд не долетит до этой точки")
+            print("Введите новые координаты")
+
+    except KeyboardInterrupt:
+        print("Программа была принудительно остановлена пользователем.") 
+        
     except ValueError:
         print("Ошибка: Введите числа!")
+
+       
+
