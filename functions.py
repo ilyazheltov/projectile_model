@@ -51,7 +51,21 @@ def objective_function(vars, start_coordinates, target_coordinates, params):
     ]
 
 def find_angles(start_coordinates, target_coordinates, params):
+    
     m, v0, W_str = params
+    lower_bounds = [0.0001, 0, -np.pi]
+    upper_bounds = [2*v0/g, np.pi/2, np.pi]
+
+    initial_guess_mas = []
+    for t in range(0, N):
+        for teta in range(0, N):
+            for phi in range(0, N):
+                t1 = t*upper_bounds[0]/(N+1) - 1e-5 if t != 0 else 0.01
+                teta1 = teta*upper_bounds[1]/(N+1) - 1e-5 if teta != 0 else 0.01
+                phi1 = phi*upper_bounds[2]/(N+1) - 1e-5 if phi != 0 else 0.01
+                initial_guess_mas.append([t1, teta1, phi1])
+
+
     Wx_str, Wy_str, Wz_str = W_str
 
     x_sym, y_sym, z_sym, vx_sym, vy_sym, vz_sym = sp.symbols('x y z vx vy vz')
@@ -82,5 +96,11 @@ def find_angles(start_coordinates, target_coordinates, params):
             return result.x
         
     if not status_of_solution:
-        print('Снаряд не сможет попасть в эту точку')
         return None
+    
+
+def text_replace(text):
+    text = text.replace("^", "**")
+    text = text.replace("ln", "log")
+    text = text.replace("е", "e") # русская на англ
+    return text

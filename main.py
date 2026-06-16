@@ -1,20 +1,17 @@
-import tkinter as tk
+import customtkinter as ctk
 import threading
-import time
 from functions import *
+import numpy as np
 
-class BallisticSimulatorApp(tk.Tk):
+class BallisticSimulatorApp(ctk.CTk):
 
     def __init__(self):
         super().__init__()
         
+        ctk.set_appearance_mode("dark")
+        ctk.set_default_color_theme("blue")
         self.title("Моделирование снаряда")
-        self.geometry("1280x720+0+0")        
-        self.configure(bg="#020202")
-        self.resizable(False, False)
-        
-        self.label_opts = {"bg": "#151414", "fg": "white", "font": ("Arial", 12)}
-        self.entry_opts = {"bg": "#151414", "fg": "white", "font": ("Arial", 12), "relief": "flat", "width": 20, "justify":"center"}
+        self.geometry("1280x720")        
         
         # Единое хранилище для всех полей ввода
         self.inputs = {}
@@ -25,9 +22,8 @@ class BallisticSimulatorApp(tk.Tk):
     def _build_ui(self):
         """Главный метод сборки всех панелей"""
 
-        self.left_area = tk.Frame(self, width=380, bg="#020202")
-        self.left_area.pack(side=tk.LEFT, fill=tk.Y, padx=5)
-        self.left_area.pack_propagate(False)
+        self.left_area = ctk.CTkFrame(self, width=380)
+        self.left_area.pack(side="left", fill="both", expand=False, padx=10, pady=10)
 
         # отрисовка всех полей
         self._build_targeting_section()
@@ -35,25 +31,30 @@ class BallisticSimulatorApp(tk.Tk):
         self._build_controls_section()
         self._build_console_section()
 
+    def input_except(self):
+            self.text_box.configure(state="disabled")
+            self.button_calc.configure(state="normal", text="РАССЧИТАТЬ ТРАЕКТОРИЮ")
+            
+
     def _create_input_row(self, parent_frame, row_index, label_text, dictionary_key):
         """Фабрика: создает строчку с Label и Entry, и сохраняет Entry в словарь"""
 
-        lbl = tk.Label(parent_frame, text=label_text, **self.label_opts)
+        lbl = ctk.CTkLabel(parent_frame, text=label_text)
         lbl.grid(row=row_index, column=0, padx=10, pady=5, sticky="w")
         
-        ent = tk.Entry(parent_frame, **self.entry_opts)
+        ent = ctk.CTkEntry(parent_frame)
         ent.grid(row=row_index, column=1, padx=10, pady=5, sticky="w")
         
-        self.inputs[dictionary_key] = ent    # заносим все поля tk.Entry в словарь inputs
+        self.inputs[dictionary_key] = ent    # заносим все поля ctk.CTkEntry в словарь inputs
 
     def _build_targeting_section(self):
         """Сборка секции координат"""
 
-        frame = tk.Frame(self.left_area, bg="#020202", pady=10)
-        frame.pack(side=tk.TOP, fill=tk.X)
+        frame = ctk.CTkFrame(self.left_area)
+        frame.pack(side="top", fill="x", padx=15, pady=10)
         
-        title = tk.Label(frame, text="Координаты цели", font=("Arial", 14, "bold"), bg="#020202", fg="white")
-        title.grid(row=0, column=0, columnspan=2, pady=(0, 10))
+        title = ctk.CTkLabel(frame, text="Координаты цели")
+        title.grid(row=0, column=0, columnspan=2)
 
         self._create_input_row(frame, 1, "Координата X (м):", "target_x")
         self._create_input_row(frame, 2, "Координата Y (м):", "target_y")
@@ -65,11 +66,11 @@ class BallisticSimulatorApp(tk.Tk):
     def _build_physics_section(self):
         """Сборка секции физики"""
 
-        frame = tk.Frame(self.left_area, bg="#020202", pady=10)
-        frame.pack(side=tk.TOP, fill=tk.X)
+        frame = ctk.CTkFrame(self.left_area)
+        frame.pack(side="top", fill="x", padx=15, pady=10)
         
-        title = tk.Label(frame, text="Параметры среды", font=("Arial", 14, "bold"), bg="#020202", fg="white")
-        title.grid(row=0, column=0, columnspan=2, pady=(0, 10))
+        title = ctk.CTkLabel(frame, text="Параметры среды")
+        title.grid(row=0, column=0, columnspan=2)
 
         self._create_input_row(frame, 1, "Масса снаряда (кг):", "mass")
         self._create_input_row(frame, 2, "Скорость вылета (м/с):", "v0")
@@ -86,39 +87,36 @@ class BallisticSimulatorApp(tk.Tk):
     def _build_console_section(self):
         """Сборка секции консоли"""
 
-        frame = tk.Frame(self.left_area, bg="#020202", pady=10)
-        frame.pack(side=tk.TOP, fill=tk.X, pady=(5, 0))
+        frame = ctk.CTkFrame(self.left_area)
+        frame.pack(side="top", fill="x", padx=15, pady=10)
         
-        text_box = tk.Text(frame, width=40, height=30)
-        text_box.pack(side=tk.TOP, fill=tk.BOTH, expand=True, padx=10, pady=5)
-        text_box.config(state=tk.DISABLED, font=('Arial', 16))
+        text_box = ctk.CTkTextbox(frame, width=40, height=200)
+        text_box.pack(side="top", fill="x", padx=15, pady=10)
+        text_box.configure(state=ctk.DISABLED)
         self.text_box = text_box
 
     def _build_controls_section(self):
         """Сборка секции вычислений"""
-        frame = tk.Frame(self.left_area, bg="#020202", pady=10)
-        frame.pack(side=tk.TOP, fill=tk.X)
+        frame = ctk.CTkFrame(self.left_area)
+        frame.pack(side="top", fill="x", padx=15, pady=10)
 
-        self.button_calc = tk.Button(
+        self.button_calc = ctk.CTkButton(
         frame, 
         text="РАССЧИТАТЬ ТРАЕКТОРИЮ",
         command = self.on_click,
-        bg="lightblue",
-        fg="black", 
-        font=("Arial", 14)
         )
 
-        self.button_calc.pack(pady=10)
+        self.button_calc.pack(side="top", fill="x", padx=15, pady=10)
 
 
     def on_click(self):
         """Эта функция срабатывает сразу при нажатии"""
 
-        self.text_box.config(state=tk.NORMAL)
-        self.text_box.insert(tk.END, "Запуск вычислений\n")
-        self.text_box.config(state=tk.DISABLED)
+        self.text_box.configure(state=ctk.NORMAL)
+        self.text_box.insert(ctk.END, "Запуск вычислений\n")
+        self.text_box.configure(state=ctk.DISABLED)
 
-        self.button_calc.config(state="disabled", bg="#555555", text="Вычисление...")
+        self.button_calc.configure(state="disabled", text="Вычисление...")
         
         thread = threading.Thread(target=self.solve_pde)
         thread.daemon = True
@@ -130,37 +128,64 @@ class BallisticSimulatorApp(tk.Tk):
 
         start_coordinates = [0, 0, 0]
 
-        
+        self.text_box.configure(state=ctk.NORMAL)
 
-        while True:
-            try:
-                target_coordinates = [
-                    float(self.inputs["target_x"].get()), 
-                    float(self.inputs["target_y"].get()), 
-                    float(self.inputs["target_z"].get())
-                    ]
-                m = float(self.inputs["mass"].get())
-                v0 = float(self.inputs["v0"].get())
-                Wx = self.inputs["wind_x"].get()
-                Wy = self.inputs["wind_y"].get()
-                Wz = self.inputs["wind_z"].get()
-                break
+        try:
+                
+            target_x = float(self.inputs["target_x"].get())
+            target_y = float(self.inputs["target_y"].get())
+            target_z = float(self.inputs["target_z"].get())
+            target_coordinates = [target_x, target_y, target_z]       
+            m = float(self.inputs["mass"].get())                       
+            v0 = float(self.inputs["v0"].get())
+            Wx = self.inputs["wind_x"].get()
+            Wy = self.inputs["wind_y"].get()
+            Wz = self.inputs["wind_z"].get()
+        
+            if m <= 0:
+                self.text_box.insert("end", f"Масса не может быть отрицательной или нулевой, введите корректное значение\n\n")
+                self.input_except()
+                return
+
+            if v0 <= 0:
+                self.text_box.insert("end", f"Скорость не может быть отрицательной или нулевой, введите корректное значение\n\n")
+                self.input_except()
+                return
+                
+            Wx = text_replace(Wx)
+            Wy = text_replace(Wy)
+            Wz = text_replace(Wz)
             
-            except (ValueError, SyntaxError):
-                self.text_box.insert(tk.END, f"Введите корректные значения/n")
-        
+        except Exception:
+            self.text_box.insert("end", f"Введены некорректные значения\n\n")
+            self.input_except()
+            return
+            
         W = [Wx, Wy, Wz]
-
         params = [m, v0, W]
 
-        t_flying, teta, phi = find_angles(start_coordinates, target_coordinates, params)
+        try:
+            t_flying, teta, phi = find_angles(start_coordinates, target_coordinates, params)
 
-        self.text_box.config(state=tk.NORMAL)
-        self.text_box.insert(tk.END, f"\nНайденные углы:\n \u03B8: {np.degrees(teta):.2f}°\n \u03C6: {np.degrees(phi):.2f}°\n")
-        self.text_box.config(state=tk.DISABLED)
+        except SyntaxError:
+            print("Проверьте правильность ввода")
+            self.input_except()   
+            return
 
-        self.button_calc.config(state="normal", bg="#007acc", text="РАССЧИТАТЬ ТРАЕКТОРИЮ")
+        except Exception:
+            print("Не получилось найти значения углов")
+            self.input_except()
+            return
 
+        self.text_box.configure(state=ctk.NORMAL)
+        self.text_box.insert(
+            ctk.END, 
+            f"\nНайденные углы:\n"
+            f"    \u03B8: {np.degrees(teta):.2f}°\n"
+            f"    \u03C6: {np.degrees(phi):.2f}°\n\n"
+        )
+        self.text_box.configure(state=ctk.DISABLED)
+        self.button_calc.configure(state="normal", text="РАССЧИТАТЬ ТРАЕКТОРИЮ")
 
 if __name__ == "__main__":
     app = BallisticSimulatorApp()
